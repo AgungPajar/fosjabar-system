@@ -14,23 +14,32 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-            @include('layouts.navigation')
+    <body class="font-sans antialiased" x-data="{ sidebarOpen: false }">
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white dark:bg-gray-800 shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+        <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex">
+   @include('layouts.sidebar')
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
-        </div>
-    </body>
-</html>
+<div 
+    x-show="sidebarOpen" 
+    @click="sidebarOpen = false"
+    class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden">
+</div>
+
+{{-- Tambahkan wrapper konten utama di sini --}}
+<div class="flex-1 flex flex-col lg:ml-64 transition-all duration-200">
+    @include('layouts.navigation')
+
+    <!-- Page Heading -->
+    @isset($header)
+        <header class="bg-white dark:bg-gray-800 shadow">
+            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex items-center">
+                {{ $header }}
+            </div>
+        </header>
+    @endisset
+
+    <!-- Page Content -->
+    <main class="p-6">
+        {{ $slot }}
+    </main>
+</div>
