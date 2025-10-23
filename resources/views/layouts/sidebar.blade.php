@@ -1,16 +1,30 @@
 @php
     $menus = [
-        ['icon' => 'home', 'label' => 'Dashboard', 'route' => route('dashboard')],
+        ['icon' => 'home', 'label' => 'Dashboard', 'route' => route('dashboard'), 'active' => ['dashboard']],
         ['icon' => 'users', 'label' => 'Users', 'route' => '#'],
-        ['icon' => 'newspaper', 'label' => 'News', 'route' => route('news.index')],
+        [
+            'icon' => 'newspaper',
+            'label' => 'News',
+            'active' => ['news.tags.*'],
+            'children' => [
+                ['label' => 'Tag', 'route' => route('news.tags.index'), 'active' => ['news.tags.*']],
+                ['label' => 'News', 'route' => route('news.index')],
+            ],
+        ],
     ];
 
-    $navBaseClasses = 'group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors';
+    $navBaseClasses = 'group flex w-full items-center rounded-xl py-3 text-sm font-medium transition-colors';
+    $navExpandedSpacing = 'px-4 gap-3';
+    $navCollapsedSpacing = 'px-3 justify-center';
     $navActiveClasses = 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-200';
     $navInactiveClasses = 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800';
+    $childNavBaseClasses = 'flex items-center gap-3 rounded-xl px-4 py-2 text-sm transition-colors';
+    $childNavActiveClasses = 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-200';
+    $childNavInactiveClasses = 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800';
     $iconBaseClasses = 'h-5 w-5 flex-shrink-0 transition-colors';
     $iconActiveClasses = 'text-indigo-600 dark:text-indigo-300';
     $iconInactiveClasses = 'text-slate-400 group-hover:text-indigo-600 dark:text-slate-500 dark:group-hover:text-indigo-200';
+    $currentUrl = url()->current();
 @endphp
 
 <div x-data="{}" x-cloak>
@@ -55,18 +69,78 @@
             <div class="space-y-1">
                 @foreach ($menus as $menu)
                     @php
-                        $isActive = url()->current() === $menu['route'];
+                        $hasChildren = isset($menu['children']) && is_array($menu['children']);
+                        $childActive = false;
+                        $menuActivePatterns = $menu['active'] ?? [];
+
+                        if ($hasChildren) {
+                            foreach ($menu['children'] as $child) {
+                                $childActivePatterns = $child['active'] ?? [];
+                                $matchesRoute = !empty($child['route']) && $child['route'] !== '#' && $currentUrl === $child['route'];
+                                $matchesName = !empty($childActivePatterns) && request()->routeIs(...$childActivePatterns);
+
+                                if ($matchesRoute || $matchesName) {
+                                    $childActive = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        $routeMatches = isset($menu['route']) && $menu['route'] !== '#' && $currentUrl === $menu['route'];
+                        $patternMatches = !empty($menuActivePatterns) && request()->routeIs(...$menuActivePatterns);
+
+                        $isActive = $hasChildren
+                            ? ($childActive || $patternMatches)
+                            : ($routeMatches || $patternMatches);
                     @endphp
-                    <a
-                        href="{{ $menu['route'] }}"
-                        title="{{ $menu['label'] }}"
-                        class="{{ $navBaseClasses }} {{ $isActive ? $navActiveClasses : $navInactiveClasses }}"
-                        @click="$store.layout.closeMobileSidebar()"
-                        @if($isActive) aria-current="page" @endif
-                    >
-                        <x-icon :name="$menu['icon']" class="{{ $iconBaseClasses }} {{ $isActive ? $iconActiveClasses : $iconInactiveClasses }}" />
-                        <span>{{ $menu['label'] }}</span>
-                    </a>
+
+                    @if ($hasChildren)
+                        <div x-data="{ open: {{ $childActive ? 'true' : 'false' }} }" class="space-y-1">
+                            <button
+                                type="button"
+                                class="{{ $navBaseClasses }} {{ $isActive ? $navActiveClasses : $navInactiveClasses }} px-4 gap-3 justify-between"
+                                @click="open = !open"
+                            >
+                                <span class="flex items-center gap-3">
+                                    <x-icon :name="$menu['icon']" class="{{ $iconBaseClasses }} {{ $isActive ? $iconActiveClasses : $iconInactiveClasses }}" />
+                                    <span>{{ $menu['label'] }}</span>
+                                </span>
+                                <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                            </button>
+
+                            <div class="space-y-1 pl-11" x-show="open" x-transition.opacity x-transition.duration.150ms>
+                                @foreach ($menu['children'] as $child)
+                                    @php
+                                        $childActivePatterns = $child['active'] ?? [];
+                                        $childIsActive = (!empty($child['route']) && $child['route'] !== '#' && $currentUrl === $child['route'])
+                                            || (!empty($childActivePatterns) && request()->routeIs(...$childActivePatterns));
+                                    @endphp
+
+                                    <a
+                                        href="{{ $child['route'] }}"
+                                        title="{{ $child['label'] }}"
+                                        class="{{ $childNavBaseClasses }} {{ $childIsActive ? $childNavActiveClasses : $childNavInactiveClasses }}"
+                                        @click="$store.layout.closeMobileSidebar()"
+                                        @if($childIsActive) aria-current="page" @endif
+                                    >
+                                        <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+                                        <span>{{ $child['label'] }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <a
+                            href="{{ $menu['route'] }}"
+                            title="{{ $menu['label'] }}"
+                            class="{{ $navBaseClasses }} {{ $isActive ? $navActiveClasses : $navInactiveClasses }} px-4 gap-3 justify-start"
+                            @click="$store.layout.closeMobileSidebar()"
+                            @if($isActive) aria-current="page" @endif
+                        >
+                            <x-icon :name="$menu['icon']" class="{{ $iconBaseClasses }} {{ $isActive ? $iconActiveClasses : $iconInactiveClasses }}" />
+                            <span>{{ $menu['label'] }}</span>
+                        </a>
+                    @endif
                 @endforeach
             </div>
         </nav>
@@ -74,7 +148,7 @@
 
     <!-- Desktop sidebar -->
     <aside
-        class="relative hidden h-screen flex-col border-r border-slate-200 bg-white/95 px-4 py-6 text-slate-700 backdrop-blur transition-[width] duration-300 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-200 lg:flex"
+        class="sticky top-0 hidden h-screen flex-col overflow-y-auto border-r border-slate-200 bg-white/95 px-4 py-6 text-slate-700 backdrop-blur transition-[width] duration-300 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-200 lg:flex"
         :class="$store.layout.sidebarExpanded ? 'w-72' : 'w-24'"
     >
         <div class="flex items-center" :class="$store.layout.sidebarExpanded ? 'justify-start' : 'justify-center'">
@@ -94,21 +168,102 @@
             <div class="space-y-1">
                 @foreach ($menus as $menu)
                     @php
-                        $isActive = url()->current() === $menu['route'];
+                        $hasChildren = isset($menu['children']) && is_array($menu['children']);
+                        $childActive = false;
+                        $menuActivePatterns = $menu['active'] ?? [];
+
+                        if ($hasChildren) {
+                            foreach ($menu['children'] as $child) {
+                                $childActivePatterns = $child['active'] ?? [];
+                                $matchesRoute = !empty($child['route']) && $child['route'] !== '#' && $currentUrl === $child['route'];
+                                $matchesName = !empty($childActivePatterns) && request()->routeIs(...$childActivePatterns);
+
+                                if ($matchesRoute || $matchesName) {
+                                    $childActive = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        $routeMatches = isset($menu['route']) && $menu['route'] !== '#' && $currentUrl === $menu['route'];
+                        $patternMatches = !empty($menuActivePatterns) && request()->routeIs(...$menuActivePatterns);
+
+                        $isActive = $hasChildren
+                            ? ($childActive || $patternMatches)
+                            : ($routeMatches || $patternMatches);
                     @endphp
-                    <a
-                        href="{{ $menu['route'] }}"
-                        title="{{ $menu['label'] }}"
-                        class="{{ $navBaseClasses }} {{ $isActive ? $navActiveClasses : $navInactiveClasses }}"
-                        @if($isActive) aria-current="page" @endif
-                    >
-                        <x-icon :name="$menu['icon']" class="{{ $iconBaseClasses }} {{ $isActive ? $iconActiveClasses : $iconInactiveClasses }}" />
-                        <span
-                            x-show="$store.layout.sidebarExpanded"
-                            x-transition.opacity
-                        >{{ $menu['label'] }}</span>
-                        <span x-show="!$store.layout.sidebarExpanded" class="sr-only">{{ $menu['label'] }}</span>
-                    </a>
+
+                    @if ($hasChildren)
+                        <div x-data="{ open: {{ $childActive ? 'true' : 'false' }} }" class="space-y-1">
+                            <button
+                                type="button"
+                                class="{{ $navBaseClasses }} {{ $isActive ? $navActiveClasses : $navInactiveClasses }}"
+                                :class="$store.layout.sidebarExpanded ? '{{ $navExpandedSpacing }} justify-between' : '{{ $navCollapsedSpacing }}'"
+                                @click="
+                                    if (!$store.layout.sidebarExpanded) {
+                                        $store.layout.sidebarExpanded = true;
+                                        $store.layout.persistSidebarState();
+                                        open = true;
+                                    } else {
+                                        open = !open;
+                                    }
+                                "
+                            >
+                                <span class="flex items-center gap-3">
+                                    <x-icon :name="$menu['icon']" class="{{ $iconBaseClasses }} {{ $isActive ? $iconActiveClasses : $iconInactiveClasses }}" />
+                                    <span
+                                        x-show="$store.layout.sidebarExpanded"
+                                        x-transition.opacity
+                                    >{{ $menu['label'] }}</span>
+                                    <span x-show="!$store.layout.sidebarExpanded" class="sr-only">{{ $menu['label'] }}</span>
+                                </span>
+                                <i
+                                    x-show="$store.layout.sidebarExpanded"
+                                    class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                                    :class="open ? 'rotate-180' : ''"
+                                ></i>
+                            </button>
+
+                            <div
+                                class="space-y-1"
+                                x-show="open && $store.layout.sidebarExpanded"
+                                x-transition.opacity
+                            >
+                                @foreach ($menu['children'] as $child)
+                                    @php
+                                        $childActivePatterns = $child['active'] ?? [];
+                                        $childIsActive = (!empty($child['route']) && $child['route'] !== '#' && $currentUrl === $child['route'])
+                                            || (!empty($childActivePatterns) && request()->routeIs(...$childActivePatterns));
+                                    @endphp
+
+                                    <a
+                                        href="{{ $child['route'] }}"
+                                        title="{{ $child['label'] }}"
+                                        class="ml-11 {{ $childNavBaseClasses }} {{ $childIsActive ? $childNavActiveClasses : $childNavInactiveClasses }}"
+                                        @if($childIsActive) aria-current="page" @endif
+                                    >
+                                        <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+                                        <span>{{ $child['label'] }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <a
+                            href="{{ $menu['route'] }}"
+                            title="{{ $menu['label'] }}"
+                            class="{{ $navBaseClasses }} {{ $isActive ? $navActiveClasses : $navInactiveClasses }}"
+                            :class="$store.layout.sidebarExpanded ? '{{ $navExpandedSpacing }} justify-start' : '{{ $navCollapsedSpacing }}'"
+                            @if($isActive) aria-current="page" @endif
+                        >
+                            <x-icon :name="$menu['icon']" class="{{ $iconBaseClasses }} {{ $isActive ? $iconActiveClasses : $iconInactiveClasses }}" />
+                            <span
+                                x-show="$store.layout.sidebarExpanded"
+                                x-transition.opacity
+                            >{{ $menu['label'] }}</span>
+                            <span x-show="!$store.layout.sidebarExpanded" class="sr-only">{{ $menu['label'] }}</span>
+                        </a>
+                    @endif
                 @endforeach
             </div>
         </nav>

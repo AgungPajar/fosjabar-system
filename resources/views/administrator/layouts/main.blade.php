@@ -9,6 +9,7 @@
 		@include('administrator.layouts.base.favicon')
 
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-Sdun0nZ/SSRyhokW2N1DbStO2Qd6hw2yffA9H9n1tFoZT3zh0ElBTtPlqvGjufH6G+j6lJzi10BGSAdoo6gWQw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 		<!-- Fallback Bootstrap CSS for dashboard when local admin assets are missing -->
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
