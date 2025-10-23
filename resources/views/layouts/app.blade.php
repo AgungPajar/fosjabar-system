@@ -31,14 +31,14 @@
 
                 @isset($header)
                     <header class="border-b border-slate-200 bg-transparent dark:border-slate-800 dark:bg-transparent">
-                        <div class="mx-auto flex max-w-4xl items-center px-6 py-6">
+                        <div class="mx-auto flex w-full items-center px-6 py-6 lg:px-8">
                             {{ $header }}
                         </div>
                     </header>
                 @endisset
 
                 <main class="flex-1">
-                    <div class="mx-auto min-h-full w-full max-w-4xl px-6 py-8">
+                    <div class="mx-auto min-h-full w-full px-6 py-8 lg:px-8">
                         {{ $slot }}
                     </div>
                 </main>

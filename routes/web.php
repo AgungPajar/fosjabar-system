@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\TagController;
 
 
 Route::get('/', function () {
@@ -11,7 +12,16 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::view('/news/tags', 'news.tags.index')->name('news.tags.index');
+
+    Route::prefix('news/tags')->name('news.tags.')->group(function () {
+        Route::get('/', [TagController::class, 'index'])->name('index');
+        Route::get('/create', [TagController::class, 'create'])->name('create');
+        Route::post('/', [TagController::class, 'store'])->name('store');
+        Route::get('/{tag}/edit', [TagController::class, 'edit'])->name('edit');
+        Route::put('/{tag}', [TagController::class, 'update'])->name('update');
+        Route::delete('/{tag}', [TagController::class, 'destroy'])->name('destroy');
+        Route::patch('/{tag}/toggle', [TagController::class, 'toggle'])->name('toggle');
+    });
 });
 
 

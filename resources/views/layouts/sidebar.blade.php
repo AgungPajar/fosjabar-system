@@ -1,12 +1,13 @@
 @php
     $menus = [
-        ['icon' => 'home', 'label' => 'Dashboard', 'route' => route('dashboard')],
+        ['icon' => 'home', 'label' => 'Dashboard', 'route' => route('dashboard'), 'active' => ['dashboard']],
         ['icon' => 'users', 'label' => 'Users', 'route' => '#'],
         [
             'icon' => 'newspaper',
             'label' => 'News',
+            'active' => ['news.tags.*'],
             'children' => [
-                ['label' => 'Tag', 'route' => route('news.tags.index')],
+                ['label' => 'Tag', 'route' => route('news.tags.index'), 'active' => ['news.tags.*']],
                 ['label' => 'News', 'route' => '#'],
             ],
         ],
@@ -23,6 +24,7 @@
     $iconBaseClasses = 'h-5 w-5 flex-shrink-0 transition-colors';
     $iconActiveClasses = 'text-indigo-600 dark:text-indigo-300';
     $iconInactiveClasses = 'text-slate-400 group-hover:text-indigo-600 dark:text-slate-500 dark:group-hover:text-indigo-200';
+    $currentUrl = url()->current();
 @endphp
 
 <div x-data="{}" x-cloak>
@@ -69,19 +71,27 @@
                     @php
                         $hasChildren = isset($menu['children']) && is_array($menu['children']);
                         $childActive = false;
+                        $menuActivePatterns = $menu['active'] ?? [];
 
                         if ($hasChildren) {
                             foreach ($menu['children'] as $child) {
-                                if (!empty($child['route']) && $child['route'] !== '#' && url()->current() === $child['route']) {
+                                $childActivePatterns = $child['active'] ?? [];
+                                $matchesRoute = !empty($child['route']) && $child['route'] !== '#' && $currentUrl === $child['route'];
+                                $matchesName = !empty($childActivePatterns) && request()->routeIs(...$childActivePatterns);
+
+                                if ($matchesRoute || $matchesName) {
                                     $childActive = true;
                                     break;
                                 }
                             }
                         }
 
+                        $routeMatches = isset($menu['route']) && $menu['route'] !== '#' && $currentUrl === $menu['route'];
+                        $patternMatches = !empty($menuActivePatterns) && request()->routeIs(...$menuActivePatterns);
+
                         $isActive = $hasChildren
-                            ? $childActive
-                            : (isset($menu['route']) && $menu['route'] !== '#' && url()->current() === $menu['route']);
+                            ? ($childActive || $patternMatches)
+                            : ($routeMatches || $patternMatches);
                     @endphp
 
                     @if ($hasChildren)
@@ -101,7 +111,9 @@
                             <div class="space-y-1 pl-11" x-show="open" x-transition.opacity x-transition.duration.150ms>
                                 @foreach ($menu['children'] as $child)
                                     @php
-                                        $childIsActive = !empty($child['route']) && $child['route'] !== '#' && url()->current() === $child['route'];
+                                        $childActivePatterns = $child['active'] ?? [];
+                                        $childIsActive = (!empty($child['route']) && $child['route'] !== '#' && $currentUrl === $child['route'])
+                                            || (!empty($childActivePatterns) && request()->routeIs(...$childActivePatterns));
                                     @endphp
 
                                     <a
@@ -158,19 +170,27 @@
                     @php
                         $hasChildren = isset($menu['children']) && is_array($menu['children']);
                         $childActive = false;
+                        $menuActivePatterns = $menu['active'] ?? [];
 
                         if ($hasChildren) {
                             foreach ($menu['children'] as $child) {
-                                if (!empty($child['route']) && $child['route'] !== '#' && url()->current() === $child['route']) {
+                                $childActivePatterns = $child['active'] ?? [];
+                                $matchesRoute = !empty($child['route']) && $child['route'] !== '#' && $currentUrl === $child['route'];
+                                $matchesName = !empty($childActivePatterns) && request()->routeIs(...$childActivePatterns);
+
+                                if ($matchesRoute || $matchesName) {
                                     $childActive = true;
                                     break;
                                 }
                             }
                         }
 
+                        $routeMatches = isset($menu['route']) && $menu['route'] !== '#' && $currentUrl === $menu['route'];
+                        $patternMatches = !empty($menuActivePatterns) && request()->routeIs(...$menuActivePatterns);
+
                         $isActive = $hasChildren
-                            ? $childActive
-                            : (isset($menu['route']) && $menu['route'] !== '#' && url()->current() === $menu['route']);
+                            ? ($childActive || $patternMatches)
+                            : ($routeMatches || $patternMatches);
                     @endphp
 
                     @if ($hasChildren)
@@ -211,7 +231,9 @@
                             >
                                 @foreach ($menu['children'] as $child)
                                     @php
-                                        $childIsActive = !empty($child['route']) && $child['route'] !== '#' && url()->current() === $child['route'];
+                                        $childActivePatterns = $child['active'] ?? [];
+                                        $childIsActive = (!empty($child['route']) && $child['route'] !== '#' && $currentUrl === $child['route'])
+                                            || (!empty($childActivePatterns) && request()->routeIs(...$childActivePatterns));
                                     @endphp
 
                                     <a
