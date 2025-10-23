@@ -1,11 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Buat News</h2>
-                <p class="text-sm text-slate-500 dark:text-slate-400">Tambahkan berita baru</p>
-            </div>
-            <a href="{{ route('news.index') }}" class="text-sm text-indigo-600">Kembali</a>
+        <div class="flex w-full flex-col gap-3">
+            <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">Buat News</h1>
+            <nav class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600">Dashboard</a>
+                <span>/</span>
+                <a href="{{ route('news.index') }}" class="hover:text-indigo-600">News</a>
+                <span>/</span>
+                <span class="text-slate-700 dark:text-slate-200">Buat</span>
+            </nav>
         </div>
     </x-slot>
 
@@ -17,6 +20,10 @@
                     <label class="block">
                         <span class="text-sm text-slate-700 dark:text-slate-300">Title</span>
                         <input type="text" name="title" value="{{ old('title') }}" class="mt-1 w-full rounded-md border-slate-200 px-3 py-2" required>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm text-slate-700 dark:text-slate-300">Slug (opsional)</span>
+                        <input type="text" name="slug" value="{{ old('slug') }}" class="mt-1 w-full rounded-md border-slate-200 px-3 py-2" placeholder="">
                     </label>
                     <label class="block">
                         <span class="text-sm text-slate-700 dark:text-slate-300">Subtitle</span>
