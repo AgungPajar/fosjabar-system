@@ -33,6 +33,7 @@
 
         <form action="{{ route('news.tags.store') }}" method="POST" class="space-y-8">
             @csrf
+            <input type="hidden" name="redirect" value="{{ request('redirect', route('news.tags.index')) }}">
 
             <div class="grid gap-6 md:grid-cols-2">
                 <div class="space-y-2">
@@ -82,7 +83,7 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-3">
-                    <a href="{{ route('news.tags.index') }}" class="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800/80">Batal</a>
+                    <a href="{{ request('redirect', route('news.tags.index')) }}" class="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800/80">Batal</a>
                     <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700">
                         <i class="fa-solid fa-check"></i>
                         Simpan Tag

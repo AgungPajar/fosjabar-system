@@ -15,6 +15,20 @@ class TagController extends Controller
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('query'));
+        $sort = $request->query('sort', 'created_at');
+        $direction = $request->query('direction', 'desc');
+        $perPage = (int) $request->query('per_page', 10);
+
+        $allowedSorts = ['name', 'slug', 'is_active', 'created_at'];
+        if (!in_array($sort, $allowedSorts, true)) {
+            $sort = 'created_at';
+        }
+
+        $direction = $direction === 'asc' ? 'asc' : 'desc';
+        $allowedPerPage = [10, 25, 50, 100];
+        if (!in_array($perPage, $allowedPerPage, true)) {
+            $perPage = 10;
+        }
 
         $tags = Tag::query()
             ->when($search !== '', function ($query) use ($search) {
@@ -23,13 +37,16 @@ class TagController extends Controller
                         ->orWhere('slug', 'like', "%{$search}%");
                 });
             })
-            ->latest()
-            ->paginate(10)
+            ->orderBy($sort, $direction)
+            ->paginate($perPage)
             ->withQueryString();
 
         return view('news.tags.index', [
             'tags' => $tags,
             'search' => $search,
+            'sort' => $sort,
+            'direction' => $direction,
+            'perPage' => $perPage,
         ]);
     }
 
@@ -58,9 +75,7 @@ class TagController extends Controller
 
         Tag::create($validated);
 
-        return redirect()
-            ->route('news.tags.index')
-            ->with('status', 'Tag berhasil dibuat.');
+        return $this->redirectWithStatus($request, 'Tag berhasil dibuat.');
     }
 
     public function edit(Tag $tag): View
@@ -94,18 +109,14 @@ class TagController extends Controller
 
         $tag->update($validated);
 
-        return redirect()
-            ->route('news.tags.index')
-            ->with('status', 'Tag berhasil diperbarui.');
+        return $this->redirectWithStatus($request, 'Tag berhasil diperbarui.');
     }
 
-    public function destroy(Tag $tag): RedirectResponse
+    public function destroy(Request $request, Tag $tag): RedirectResponse
     {
         $tag->delete();
 
-        return redirect()
-            ->route('news.tags.index')
-            ->with('status', 'Tag berhasil dihapus.');
+        return $this->redirectWithStatus($request, 'Tag berhasil dihapus.');
     }
 
     public function toggle(Request $request, Tag $tag): RedirectResponse
@@ -114,8 +125,21 @@ class TagController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
-        return redirect()
-            ->route('news.tags.index')
-            ->with('status', 'Status tag diperbarui.');
+        return $this->redirectWithStatus($request, 'Status tag diperbarui.');
+    }
+
+    protected function redirectWithStatus(Request $request, string $message): RedirectResponse
+    {
+        $target = $request->input('redirect');
+
+        if ($target && filter_var($target, FILTER_VALIDATE_URL)) {
+            return redirect()->to($target)->with('status', $message);
+        }
+
+        if ($target && str_starts_with($target, '/')) {
+            return redirect($target)->with('status', $message);
+        }
+
+        return redirect()->route('news.tags.index')->with('status', $message);
     }
 }

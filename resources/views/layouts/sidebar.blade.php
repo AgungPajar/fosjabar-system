@@ -148,7 +148,7 @@
 
     <!-- Desktop sidebar -->
     <aside
-        class="relative hidden h-screen flex-col border-r border-slate-200 bg-white/95 px-4 py-6 text-slate-700 backdrop-blur transition-[width] duration-300 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-200 lg:flex"
+        class="sticky top-0 hidden h-screen flex-col overflow-y-auto border-r border-slate-200 bg-white/95 px-4 py-6 text-slate-700 backdrop-blur transition-[width] duration-300 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-200 lg:flex"
         :class="$store.layout.sidebarExpanded ? 'w-72' : 'w-24'"
     >
         <div class="flex items-center" :class="$store.layout.sidebarExpanded ? 'justify-start' : 'justify-center'">
