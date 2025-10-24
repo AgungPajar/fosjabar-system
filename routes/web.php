@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\TagController;
-
+use App\Http\Controllers\Admin\GenerationController;
+use App\Http\Controllers\Admin\ParticipantController;
+use App\Http\Controllers\Admin\PositionController;
 
 
 Route::get('/', function () {
@@ -29,6 +31,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // News CRUD
     Route::resource('news', NewsController::class);
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::resource('generations', GenerationController::class)->except(['show']);
+        Route::resource('participants', ParticipantController::class)->except(['show']);
+        Route::resource('positions', PositionController::class)->except(['show']);
+        Route::patch('positions/{position}/toggle', [PositionController::class, 'toggle'])->name('positions.toggle');
+    });
 });
 
 
