@@ -27,7 +27,7 @@ class GenerationController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('admin.generations.index', [
+        return view('generations.index', [
             'generations' => $generations,
             'leaders' => $leaders,
         ]);
@@ -35,7 +35,7 @@ class GenerationController extends Controller
 
     public function create(): View
     {
-        return view('admin.generations.create', [
+        return view('generations.create', [
             'participants' => Participant::orderBy('name')->get(['id', 'name']),
         ]);
     }
@@ -57,13 +57,13 @@ class GenerationController extends Controller
 
         Generation::create($validated);
 
-        return redirect()->route('admin.generations.index')
+        return redirect()->route('generations.index')
             ->with('status', 'Generasi berhasil dibuat.');
     }
 
     public function edit(Generation $generation): View
     {
-        return view('admin.generations.edit', [
+        return view('generations.edit', [
             'generation' => $generation->load('leader'),
             'participants' => Participant::orderBy('name')->get(['id', 'name']),
         ]);
@@ -86,7 +86,7 @@ class GenerationController extends Controller
 
         $generation->update($validated);
 
-        return redirect()->route('admin.generations.index')
+        return redirect()->route('generations.index')
             ->with('status', 'Generasi berhasil diperbarui.');
     }
 
@@ -94,7 +94,7 @@ class GenerationController extends Controller
     {
         $generation->delete();
 
-        return redirect()->route('admin.generations.index')
+        return redirect()->route('generations.index')
             ->with('status', 'Generasi berhasil dihapus.');
     }
 }

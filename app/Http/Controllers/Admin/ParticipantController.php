@@ -33,7 +33,7 @@ class ParticipantController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.participants.index', [
+        return view('participants.index', [
             'participants' => $participants,
             'search' => $search,
             'perPage' => $perPage,
@@ -42,7 +42,7 @@ class ParticipantController extends Controller
 
     public function create(): View
     {
-        return view('admin.participants.create', [
+        return view('participants.create', [
             'generations' => Generation::orderBy('name')->get(['id', 'name']),
             'positions' => Position::orderBy('name')->get(['id', 'name']),
         ]);
@@ -72,7 +72,7 @@ class ParticipantController extends Controller
         $participant = Participant::create($validated);
         $participant->positions()->sync($positions);
 
-        return redirect()->route('admin.participants.index')
+        return redirect()->route('participants.index')
             ->with('status', 'Peserta berhasil dibuat.');
     }
 
@@ -80,7 +80,7 @@ class ParticipantController extends Controller
     {
         $participant->load('positions', 'generation');
 
-        return view('admin.participants.edit', [
+        return view('participants.edit', [
             'participant' => $participant,
             'generations' => Generation::orderBy('name')->get(['id', 'name']),
             'positions' => Position::orderBy('name')->get(['id', 'name']),
@@ -118,7 +118,7 @@ class ParticipantController extends Controller
             $participant->positions()->sync($positions);
         }
 
-        return redirect()->route('admin.participants.index')
+        return redirect()->route('participants.index')
             ->with('status', 'Peserta berhasil diperbarui.');
     }
 
@@ -126,7 +126,7 @@ class ParticipantController extends Controller
     {
         $participant->delete();
 
-        return redirect()->route('admin.participants.index')
+        return redirect()->route('participants.index')
             ->with('status', 'Peserta berhasil dihapus.');
     }
 }

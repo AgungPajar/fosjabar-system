@@ -25,7 +25,7 @@ class PositionController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.positions.index', [
+        return view('positions.index', [
             'positions' => $positions,
             'search' => $search,
             'perPage' => $perPage,
@@ -34,7 +34,7 @@ class PositionController extends Controller
 
     public function create(): View
     {
-        return view('admin.positions.create');
+        return view('positions.create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -50,13 +50,13 @@ class PositionController extends Controller
 
         Position::create($validated);
 
-        return redirect()->route('admin.positions.index')
+        return redirect()->route('positions.index')
             ->with('status', 'Posisi berhasil dibuat.');
     }
 
     public function edit(Position $position): View
     {
-        return view('admin.positions.edit', [
+        return view('positions.edit', [
             'position' => $position,
         ]);
     }
@@ -74,7 +74,7 @@ class PositionController extends Controller
 
         $position->update($validated);
 
-        return redirect()->route('admin.positions.index')
+        return redirect()->route('positions.index')
             ->with('status', 'Posisi berhasil diperbarui.');
     }
 
@@ -82,7 +82,7 @@ class PositionController extends Controller
     {
         $position->delete();
 
-        return redirect()->route('admin.positions.index')
+        return redirect()->route('positions.index')
             ->with('status', 'Posisi berhasil dihapus.');
     }
 
@@ -92,7 +92,7 @@ class PositionController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
-        return redirect()->route('admin.positions.index')
+        return redirect()->route('positions.index')
             ->with('status', 'Status posisi diperbarui.');
     }
 }

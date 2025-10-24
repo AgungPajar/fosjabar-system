@@ -32,12 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // News CRUD
     Route::resource('news', NewsController::class);
 
-    Route::prefix('admin')->name('admin.')->group(function () {
-        Route::resource('generations', GenerationController::class)->except(['show']);
-        Route::resource('participants', ParticipantController::class)->except(['show']);
-        Route::resource('positions', PositionController::class)->except(['show']);
-        Route::patch('positions/{position}/toggle', [PositionController::class, 'toggle'])->name('positions.toggle');
-    });
+    Route::resource('generations', GenerationController::class)->except(['show']);
+    Route::resource('participants', ParticipantController::class)->except(['show']);
+    Route::resource('positions', PositionController::class)->except(['show']);
+    Route::patch('positions/{position}/toggle', [PositionController::class, 'toggle'])->name('positions.toggle');
 });
 
 

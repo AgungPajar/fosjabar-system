@@ -1,14 +1,23 @@
 @php
     $menus = [
         ['icon' => 'home', 'label' => 'Dashboard', 'route' => route('dashboard'), 'active' => ['dashboard']],
-        ['icon' => 'users', 'label' => 'Users', 'route' => '#'],
         [
             'icon' => 'newspaper',
             'label' => 'News',
-            'active' => ['news.tags.*'],
+            'active' => ['news.tags.*', 'news.*'],
             'children' => [
                 ['label' => 'Tag', 'route' => route('news.tags.index'), 'active' => ['news.tags.*']],
-                ['label' => 'News', 'route' => route('news.index')],
+                ['label' => 'News', 'route' => route('news.index'), 'active' => ['news.*']],
+            ],
+        ],
+        [
+            'icon' => 'users',
+            'label' => 'Participants',
+            'active' => ['generations.*', 'participants.*', 'positions.*'],
+            'children' => [
+                ['label' => 'Generasi', 'route' => route('generations.index'), 'active' => ['generations.*']],
+                ['label' => 'Peserta', 'route' => route('participants.index'), 'active' => ['participants.*']],
+                ['label' => 'Posisi', 'route' => route('positions.index'), 'active' => ['positions.*']],
             ],
         ],
     ];
