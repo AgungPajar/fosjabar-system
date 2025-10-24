@@ -116,6 +116,10 @@ return new class extends Migration
         });
 
         Schema::table('attendances', function (Blueprint $table) {
+            $table->foreign('meeting_id')
+                ->references('id')
+                ->on('activities')
+                ->cascadeOnDelete();
             $table->foreign('participant_id')
                 ->references('id')
                 ->on('participants')
@@ -129,6 +133,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('attendances', function (Blueprint $table) {
+            $table->dropForeign(['meeting_id']);
             $table->dropForeign(['participant_id']);
         });
 
