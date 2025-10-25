@@ -73,10 +73,7 @@
                                 <thead class="bg-slate-50 dark:bg-slate-800/60">
                                     <tr>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
-                                                <a href="{{ $sortUrl('id') }}" class="flex w-full items-center gap-2 rounded-md px-1 py-1 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800/70 dark:hover:text-indigo-300">
-                                                    ID
-                                                    <i class="fa-solid {{ $sortIcon('id') }} text-slate-400"></i>
-                                                </a>
+                                                Image
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
                                                 <a href="{{ $sortUrl('slug') }}" class="flex w-full items-center gap-2 rounded-md px-1 py-1 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800/70 dark:hover:text-indigo-300">
@@ -114,7 +111,24 @@
                                 <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-800 dark:bg-slate-900">
                                     @foreach ($news as $item)
                                         <tr>
-                                            <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{{ $item->id }}</td>
+                                            <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
+                                                @php
+                                                    $photoUrl = null;
+                                                    if (!empty($item->photo)) {
+                                                        if (str_starts_with($item->photo, 'foto/')) {
+                                                            $photoUrl = asset($item->photo);
+                                                        } else {
+                                                            $photoUrl = asset('storage/' . $item->photo);
+                                                        }
+                                                    }
+                                                @endphp
+
+                                                @if($photoUrl)
+                                                    <img src="{{ $photoUrl }}" alt="" class="h-12 w-20 object-cover rounded">
+                                                @else
+                                                    <div class="h-12 w-20 rounded bg-slate-100 flex items-center justify-center text-xs text-slate-500">No image</div>
+                                                @endif
+                                            </td>
                                             <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{{ $item->slug }}</td>
                                             <td class="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-200">{{ $item->title }}</td>
                                             <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{{ $item->subtitle }}</td>
