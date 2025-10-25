@@ -24,18 +24,32 @@
             </div>
 
             {{-- Gambar utama --}}
-            <div class="mb-4">
-                @if($news->photo)
-                    <img src="{{ asset('storage/' . $news->photo) }}" 
-                         alt="Foto berita" 
-                         class="mb-2 w-full h-64 object-cover rounded" 
-                         loading="lazy">
-                @else
-                    <div class="rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                        Saat ini gambarnya belum ada.
-                    </div>
-                @endif
-            </div>
+                @php
+                    $photoUrl = null;
+                    if (!empty($news->photo)) {
+                        if (str_starts_with($news->photo, 'foto/')) {
+                            $photoUrl = asset($news->photo);
+                        } else {
+                            $photoUrl = asset('storage/' . $news->photo);
+                        }
+                    }
+                @endphp
+
+                <div class="mb-4">
+    @if($photoUrl)
+        <div class="flex justify-center items-center bg-slate-100 dark:bg-slate-800 rounded overflow-hidden">
+            <img src="{{ $photoUrl }}" 
+                 alt="Foto berita" 
+                 class="max-h-96 w-auto object-contain rounded" 
+                 loading="lazy">
+        </div>
+    @else
+        <div class="rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+            Saat ini gambarnya belum ada.
+        </div>
+    @endif
+</div>
+
 
             {{-- Deskripsi --}}
             <div class="prose dark:prose-invert">

@@ -36,4 +36,12 @@ class News extends Model
     {
         return 'slug';
     }
+
+    /**
+     * Tags relation (many-to-many via news_tags_pivots)
+     */
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'news_tags_pivots', 'news_id', 'tag_id');
+    }
 }

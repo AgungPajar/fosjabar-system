@@ -58,7 +58,8 @@ class NewsController extends Controller
 
     public function create()
     {
-        return view('news.create');
+        $allTags = \App\Models\Tag::where('is_active', true)->orderBy('name')->get();
+        return view('news.create', compact('allTags'));
     }
 
     public function store(Request $request)
@@ -80,10 +81,39 @@ class NewsController extends Controller
         }
 
         if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('news', 'public');
+            // store directly to public/foto/news per request
+            $file = $request->file('photo');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $destination = public_path('foto/news');
+            // ensure destination exists
+            if (!is_dir($destination)) {
+                @mkdir($destination, 0755, true);
+            }
+            $file->move($destination, $filename);
+            $data['photo'] = 'foto/news/' . $filename;
         }
 
-        News::create($data);
+        $news = News::create($data);
+
+        // handle tags: accept array of ids or names
+        $tagsInput = $request->input('tags', []);
+        $tagIds = [];
+        foreach ($tagsInput as $t) {
+            if (is_numeric($t) && $tag = \App\Models\Tag::find($t)) {
+                $tagIds[] = $tag->id;
+                continue;
+            }
+
+            // treat as name, find or create
+            $name = trim((string) $t);
+            if ($name === '') continue;
+            $tag = \App\Models\Tag::firstOrCreate(['name' => $name], ['slug' => \Illuminate\Support\Str::slug($name)]);
+            $tagIds[] = $tag->id;
+        }
+
+        if (!empty($tagIds)) {
+            $news->tags()->sync($tagIds);
+        }
 
         return redirect()->route('news.index')->with('success', 'News created.');
     }
@@ -95,7 +125,9 @@ class NewsController extends Controller
 
     public function edit(News $news)
     {
-        return view('news.edit', compact('news'));
+        $allTags = \App\Models\Tag::where('is_active', true)->orderBy('name')->get();
+        $selectedTags = $news->tags()->pluck('tags.id')->toArray();
+        return view('news.edit', compact('news', 'allTags', 'selectedTags'));
     }
 
     public function update(Request $request, News $news)
@@ -117,25 +149,65 @@ class NewsController extends Controller
             unset($data['slug']);
         }
 
-        if ($request->hasFile('photo')) {
-            // delete old photo if exists
-            if (!empty($news->photo) && Storage::disk('public')->exists($news->photo)) {
-                Storage::disk('public')->delete($news->photo);
+    if ($request->hasFile('photo')) {
+            // delete old photo if exists (either public/foto or storage)
+            if (!empty($news->photo)) {
+                $oldPublic = public_path($news->photo);
+                if (file_exists($oldPublic)) {
+                    @unlink($oldPublic);
+                }
+
+                // also attempt to delete from storage disk (legacy files)
+                if (Storage::disk('public')->exists($news->photo)) {
+                    Storage::disk('public')->delete($news->photo);
+                }
             }
 
-            $data['photo'] = $request->file('photo')->store('news', 'public');
+            // store new file into public/foto/news
+            $file = $request->file('photo');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $destination = public_path('foto/news');
+            if (!is_dir($destination)) {
+                @mkdir($destination, 0755, true);
+            }
+            $file->move($destination, $filename);
+            $data['photo'] = 'foto/news/' . $filename;
         }
 
         $news->update($data);
+
+        // handle tags
+        $tagsInput = $request->input('tags', []);
+        $tagIds = [];
+        foreach ($tagsInput as $t) {
+            if (is_numeric($t) && $tag = \App\Models\Tag::find($t)) {
+                $tagIds[] = $tag->id;
+                continue;
+            }
+
+            $name = trim((string) $t);
+            if ($name === '') continue;
+            $tag = \App\Models\Tag::firstOrCreate(['name' => $name], ['slug' => \Illuminate\Support\Str::slug($name)]);
+            $tagIds[] = $tag->id;
+        }
+
+        $news->tags()->sync($tagIds);
 
         return redirect()->route('news.index')->with('success', 'News updated.');
     }
 
     public function destroy(News $news)
     {
-        // delete photo from storage when deleting the news
-        if (!empty($news->photo) && Storage::disk('public')->exists($news->photo)) {
-            Storage::disk('public')->delete($news->photo);
+        // delete photo from public path or storage when deleting the news
+        if (!empty($news->photo)) {
+            $oldPublic = public_path($news->photo);
+            if (file_exists($oldPublic)) {
+                @unlink($oldPublic);
+            }
+
+            if (Storage::disk('public')->exists($news->photo)) {
+                Storage::disk('public')->delete($news->photo);
+            }
         }
 
         $news->delete();
